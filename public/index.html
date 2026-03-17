@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>摇个品牌名</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500;600&family=Noto+Sans+SC:wght@200;300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap');
+:root{--bg:#F6F4F0;--card:#FFF;--text:#2C2825;--sub:#7A7168;--muted:#B5ADA3;--line:#E6E1DA;--accent:#C8612B;--accent-soft:rgba(200,97,43,.08)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);font-family:'Noto Sans SC',sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden}
+.header{text-align:center;padding:56px 24px 32px}
+.header h1{font-family:'Noto Serif SC',serif;font-weight:300;font-size:28px;letter-spacing:6px;text-indent:6px;margin-bottom:10px}
+.header p{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px}
+.steps{display:flex;justify-content:center;gap:32px;padding:0 24px 32px}
+.step{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);transition:color .3s}
+.step.active{color:var(--text)}
+.step-num{width:20px;height:20px;border-radius:50%;border:1px solid var(--muted);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:9px;transition:all .3s}
+.step.active .step-num{background:var(--text);color:var(--bg);border-color:var(--text)}
+.style-section{padding:0 20px 24px;max-width:780px;margin:0 auto}
+.style-section-title{font-size:12px;color:var(--sub);margin-bottom:16px;padding-left:4px;font-weight:400}
+.style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.style-card{aspect-ratio:1.05;border:1.5px solid var(--line);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .25s;padding:8px 4px;position:relative}
+.style-card:hover{border-color:var(--sub)}
+.style-card.selected{border-color:var(--text);background:var(--text)}
+.style-card .style-icon{font-size:20px;transition:all .25s;line-height:1}
+.style-card.selected .style-icon{filter:grayscale(1) brightness(2)}
+.style-card .style-name{font-size:11px;font-weight:400;color:var(--text);letter-spacing:1.5px;transition:color .25s;text-align:center}
+.style-card.selected .style-name{color:var(--bg)}
+.style-card .style-sample{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted);letter-spacing:.5px;transition:color .25s;text-align:center;line-height:1.5}
+.style-card.selected .style-sample{color:rgba(246,244,240,.4)}
+.style-card .lock-badge{position:absolute;top:6px;right:6px;font-size:12px;opacity:.6}
+.style-card.locked-style{opacity:.55}
+.style-card.locked-style:hover{opacity:.75}
+.cat-section{padding:0 20px 20px;max-width:780px;margin:0 auto}
+.cat-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.cat-tag{padding:5px 12px;border:1px solid var(--line);background:transparent;font-family:'Noto Sans SC',sans-serif;font-size:11px;font-weight:300;color:var(--sub);cursor:pointer;transition:all .2s}
+.cat-tag.active{border-color:var(--text);color:var(--text);background:rgba(44,40,37,.04)}
+.cat-tag:hover:not(.active){border-color:var(--sub)}
+.control-row{display:flex;justify-content:center;align-items:center;gap:24px;padding:8px 20px 28px;flex-wrap:wrap}
+.control-group{display:flex;align-items:center;gap:8px}
+.control-label{font-size:11px;color:var(--sub);font-weight:400}
+.len-btn{padding:0 14px;height:32px;border:1px solid var(--line);background:transparent;font-family:'DM Mono',monospace;font-size:12px;color:var(--sub);cursor:pointer;transition:all .2s}
+.len-btn.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.toggle-wrap{display:flex;align-items:center;gap:10px}
+.toggle-label{font-size:11px;color:var(--muted);transition:color .2s;cursor:pointer;user-select:none}
+.toggle-label.active{color:var(--text);font-weight:400}
+.toggle-track{width:44px;height:24px;background:var(--line);border-radius:12px;position:relative;cursor:pointer;transition:background .3s}
+.toggle-track.on{background:var(--text)}
+.toggle-knob{width:18px;height:18px;background:var(--card);border-radius:50%;position:absolute;top:3px;left:3px;transition:transform .3s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle-track.on .toggle-knob{transform:translateX(20px)}
+.mode-hint{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:.5px;text-align:center;padding:0 20px 16px}
+.slot-wrapper{display:flex;flex-direction:column;align-items:center;padding:0 20px 20px}
+.slot-area{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;justify-content:center}
+.slot{width:72px;height:92px;background:var(--card);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;user-select:none;transition:all .25s;overflow:hidden;flex-shrink:0}
+.slot .slot-char{font-family:'Noto Serif SC',serif;font-weight:400;font-size:36px;color:var(--text);transition:transform .15s}
+.slot .lock-dot{position:absolute;top:6px;right:6px;width:5px;height:5px;border-radius:50%;background:transparent;transition:all .2s}
+.slot.locked{border-color:var(--accent);background:var(--accent-soft)}
+.slot.locked .lock-dot{background:var(--accent)}
+.slot:hover:not(.locked){border-color:var(--sub)}
+.slot-hint{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:28px}
+.shake-btn{width:180px;height:48px;background:var(--text);border:none;color:var(--bg);font-family:'Noto Serif SC',serif;font-weight:300;font-size:18px;letter-spacing:12px;text-indent:12px;cursor:pointer;transition:all .15s;margin-bottom:10px}
+.shake-btn:hover{opacity:.85}
+.shake-btn:active{transform:scale(.96)}
+.key-hint{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:12px}
+.free-hint{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:24px;text-align:center}
+.save-btn{padding:8px 32px;border:1px solid var(--line);background:transparent;font-size:13px;color:var(--sub);cursor:pointer;transition:all .2s;margin-bottom:40px}
+.save-btn:hover{border-color:var(--sub);color:var(--text)}
+.saved-section{max-width:780px;margin:0 auto;padding:0 20px 32px}
+.saved-bar{display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.saved-bar h3{font-size:12px;font-weight:400;color:var(--sub);letter-spacing:2px}
+.saved-actions{display:flex;gap:12px}
+.saved-action-btn{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);background:none;border:none;cursor:pointer;letter-spacing:1px;transition:color .2s}
+.saved-action-btn:hover{color:var(--accent)}
+.saved-list{display:flex;flex-wrap:wrap;gap:8px}
+.saved-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--line);animation:popIn .25s ease-out;transition:all .2s}
+.saved-item:hover{border-color:var(--sub)}
+.saved-item .saved-word{font-family:'Noto Serif SC',serif;font-weight:400;font-size:18px;letter-spacing:3px;color:var(--text)}
+.saved-item .saved-style-tag{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;padding:2px 6px;background:var(--bg)}
+.saved-item .remove-x{font-size:14px;color:var(--muted);cursor:pointer;line-height:1;padding:0 2px;transition:color .2s}
+.saved-item .remove-x:hover{color:var(--accent)}
+@keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.empty-hint{text-align:center;font-size:12px;color:var(--muted);padding:32px 0;font-weight:300}
+/* ── UNLOCK SECTION ── */
+.unlock-section{max-width:780px;margin:0 auto 40px;padding:0 20px}
+.unlock-bar{background:linear-gradient(135deg,#2C2825,#4A4340);padding:20px 24px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:opacity .2s}
+.unlock-bar:hover{opacity:.9}
+.unlock-bar-text{color:#C4B5A0;font-size:13px;letter-spacing:1px}
+.unlock-bar-price{color:var(--bg);font-size:18px;font-weight:500}
+
+
+
+
+
+
+
+
+
+
+
+
+.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);font-size:12px;padding:10px 24px;opacity:0;transition:all .3s;pointer-events:none;z-index:100;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:600px){.style-grid{grid-template-columns:repeat(3,1fr);gap:8px}.slot{width:56px;height:74px}.slot .slot-char{font-size:28px}.steps{gap:16px}.step span{display:none}.control-row{gap:12px}}
+@media(max-width:380px){.style-grid{grid-template-columns:repeat(2,1fr);gap:8px}.slot{width:48px;height:66px}.slot .slot-char{font-size:24px}}
+
+.code-panel{background:#3A3632;overflow:hidden;transition:max-height .4s ease,padding .4s ease;max-height:0;padding:0 24px}
+.code-panel.open{max-height:300px;padding:24px}
+.code-panel-inner{display:flex;flex-direction:column;align-items:center;gap:16px}
+.code-step{font-size:13px;color:#C4B5A0;text-align:center;line-height:1.6}
+.code-input-row{display:flex;gap:8px;width:100%;max-width:360px}
+.code-input{flex:1;height:44px;background:#2C2825;border:1.5px solid rgba(196,181,160,.3);color:#F6F4F0;font-family:'DM Mono',monospace;font-size:14px;padding:0 14px;letter-spacing:1px;outline:none;text-transform:uppercase;transition:border-color .2s}
+.code-input:focus{border-color:#C4B5A0}
+.code-input::placeholder{color:#6A6360;font-size:12px;letter-spacing:0;text-transform:none}
+.code-submit-btn{height:44px;padding:0 24px;background:#C4B5A0;border:none;color:#2C2825;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.code-submit-btn:hover{background:#D4C5B0}
+.code-submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.code-msg{font-size:12px;min-height:18px;transition:color .2s}
+.code-msg.error{color:#E87461}
+.code-msg.success{color:#7EBF8E}
+</style>
+</head>
+<body>
+<div class="header"><h1>摇个品牌名</h1><p>Brand Name Shaker</p></div>
+<div class="steps">
+<div class="step active" id="step1"><div class="step-num">1</div><span>选风格</span></div>
+<div class="step" id="step2"><div class="step-num">2</div><span>选字库</span></div>
+<div class="step" id="step3"><div class="step-num">3</div><span>摇一摇</span></div>
+</div>
+<div class="style-section"><div class="style-section-title">选一个品牌调性</div><div class="style-grid" id="styleGrid"></div></div>
+<div class="cat-section"><div class="cat-row" id="catRow"></div></div>
+<div class="control-row">
+<div class="control-group"><span class="control-label">字数</span>
+<button class="len-btn" data-len="2" onclick="setLen(2)">2</button>
+<button class="len-btn active" data-len="3" onclick="setLen(3)">3</button>
+<button class="len-btn" data-len="4" onclick="setLen(4)">4</button>
+<button class="len-btn" data-len="more" onclick="setLen('more')">更多</button>
+</div>
+<div class="toggle-wrap">
+<span class="toggle-label active" id="labelRandom">随机拼字</span>
+<div class="toggle-track" id="logicToggle" onclick="toggleLogic()"><div class="toggle-knob"></div></div>
+<span class="toggle-label" id="labelLogic">有意义词</span>
+</div>
+</div>
+<div id="modeHint" class="mode-hint">从字库中随机抽字拼合，可能产生意外惊喜</div>
+<div class="slot-wrapper">
+<div class="slot-area" id="slotArea"></div>
+<div class="slot-hint" id="slotHint">点击单字锁定</div>
+<button class="shake-btn" id="shakeBtn" onclick="shake()">摇</button>
+<div class="key-hint">Space 摇 · Enter 收藏</div>
+<div class="free-hint" id="freeHint"></div>
+<button class="save-btn" onclick="saveWord()">收藏这个</button>
+</div>
+<div class="saved-section">
+<div class="saved-bar"><h3>已收藏</h3><div class="saved-actions">
+<button class="saved-action-btn" onclick="copyAll()">复制全部</button>
+<button class="saved-action-btn" onclick="clearSaved()">清空</button>
+</div></div>
+<div class="saved-list" id="savedList"><div class="empty-hint">摇到喜欢的按 Enter 收藏</div></div>
+</div>
+<!-- UNLOCK SECTION -->
+<div class="unlock-section" id="unlockSection">
+<div class="unlock-bar" onclick="toggleCodePanel()">
+<span class="unlock-bar-text">解锁全部 16 种风格 + 无限次摇</span>
+<span class="unlock-bar-price">¥9.9</span>
+</div>
+<div class="code-panel" id="codePanel">
+<div class="code-panel-inner">
+<div class="code-step">在小红书搜索「摇个品牌名」购买兑换码</div>
+<div class="code-input-row">
+<input id="codeInput" class="code-input" type="text" placeholder="输入兑换码 BNS-XXXX-XXXX" maxlength="14" autocomplete="off" spellcheck="false">
+<button class="code-submit-btn" onclick="redeemCode()">解锁</button>
+</div>
+<div class="code-msg" id="codeMsg"></div>
+</div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+
+const PHRASES={"minimal": {"2": ["留白", "几何", "极简", "弧度", "平行", "临界", "渐近", "折线", "对称", "余数", "虚线", "切面", "零度", "半径", "棱角", "净面", "素朴", "微物", "无声", "显隐", "钝感", "匀称", "纯度", "空格", "间距", "尺度", "维度", "原点"], "3": ["零点场", "临界点", "渐近线", "第三面", "不在场", "微存在", "未命名", "等距离", "半透明", "平行线", "无声处", "空白格", "极简主", "素朴感", "虚线外", "切面上", "零维度", "净空间", "弧度计", "余数项", "不可解", "测不准", "波函数", "共振点", "亚感知"], "4": ["恰好合适", "几近透明", "安静存在", "无需多余", "不多不少", "刚好抵达", "虚线以外", "折叠空间", "平行世界", "留白之间", "零度以上", "临界状态", "渐近自由", "沉默样本", "无人在场", "最短路径", "对称之外", "微小偏移", "净空之中", "极值附近", "测不准的", "波的叠加", "量子纠缠", "共振频率"], "more": ["恰好的距离", "几乎是透明的", "安静的存在感", "不需要解释的", "无声的抵达", "极简的可能性", "留白的力量", "临界的那一天", "平行的轨迹", "虚线的延长线", "在场与不在场", "看不见的坐标系", "最短的那条路径", "测不准才是常态", "平行线终于相遇了", "几乎什么都没有", "留白比填满更难", "多一点就多余了", "安静是一种力量", "简单到不能再简单"]}, "nature": {"2": ["观夏", "山野", "泉石", "草木", "苔痕", "林泉", "岚山", "竹露", "溪谷", "松烟", "雾隐", "霜降", "潮汐", "花事", "蕨类", "土壤", "雨林", "苔原", "芽生", "根系", "云岫", "涧底", "霁色", "汀兰", "鹤影", "萤火", "川流", "岸芷"], "3": ["山间事", "林中人", "溪谷里", "草木间", "野生的", "雾中花", "苔上行", "松下风", "泉边石", "雨后山", "霜降日", "云深处", "竹林间", "花事了", "潮汐间", "鹤归来", "萤火虫", "露水晨", "风过林", "雪落松"], "4": ["山间有风", "林深不知", "草木有灵", "溪声入耳", "雾中花开", "松下听泉", "苔痕上阶", "野花自开", "潮汐有信", "云深不知", "霜降之后", "竹影摇风", "泉石之间", "雨过天青", "鹤鸣九皋", "一叶知秋", "花开半夏", "风过无痕", "露从今夜", "岚气初生"], "more": ["山间的风是甜的", "花开在没人看的地方", "溪水从不问去向", "草木自己会生长", "雨后总会放晴的", "雾散了什么都在", "潮汐从不迟到", "野花不需要名字", "一棵树的整个秋天", "萤火虫的季节到了", "竹林深处有人家", "露水还没有干", "苔藓慢慢在长", "山间风很轻", "云从山间生起", "草木自有本心", "花开在无人处", "溪水不问出处", "雨后的泥土香", "松下刚好有块石头"]}, "literary": {"2": ["方所", "言几", "单向", "故事", "书局", "字句", "纸上", "墨色", "旧事", "往来", "偶遇", "驿站", "巷口", "窗台", "独白", "回声", "余味", "注脚", "侧记", "手记", "序言", "信笺", "拾遗", "备忘", "札记", "笔迹", "铭刻", "断章"], "3": ["旧书店", "故事馆", "备忘录", "独白集", "窗台上", "巷口处", "纸上谈", "偶遇记", "回声里", "注脚下", "半句话", "言外意", "拾遗记", "字里行", "未读完", "写不完", "下半句", "往事集", "信笺里", "墨色深"], "4": ["言不及义", "故事未完", "旧事重提", "纸上漫游", "偶然相遇", "回声不断", "一字千金", "窗台日记", "断章取义", "人间备忘", "独白时刻", "不期而遇", "字里行间", "余味悠长", "旧梦新编", "半部书斋", "往事如烟", "注脚人生", "偶得浮生", "拾遗补缺"], "more": ["还没写完的信", "故事讲到一半就停了", "偶然翻到的那一页", "一句话的重量", "窗台上的旧书", "巷口的那盏灯", "未寄出的信笺", "回声还在继续", "有些话说不完", "注脚比正文长", "纸上写不下的", "字句之间的事", "备忘录最后一页", "故事还没有名字", "一本还没看完的", "有些话只说一半", "回声比原声更远", "写不下所以留白", "注脚里藏着答案", "偶然路过那条巷子"]}, "tech": {"2": ["奇点", "算力", "脉冲", "字节", "回路", "矢量", "频谱", "象素", "量子", "引力", "纬度", "节点", "原力", "介质", "质子", "弦论", "拓扑", "冗余", "通量", "熵值", "涌现", "递归", "信噪", "衡值", "迭代", "极客", "锐度", "初始"], "3": ["零延迟", "超新星", "暗能量", "量子态", "信噪比", "第一性", "加速度", "逆熵值", "新纪元", "平行域", "迭代器", "深空站", "元宇宙", "次方程", "光年外", "黑箱子", "启动项", "初始化", "未来式", "频谱仪"], "4": ["量子涌现", "奇点之后", "递归循环", "信号噪声", "超新星爆", "深空探测", "第一性原", "暗物质流", "加速前进", "零延迟达", "脉冲信号", "数据洪流", "算力无限", "引力透镜", "频谱可见", "拓扑变换", "熵减时刻", "涌现智能", "极客精神", "初始状态"], "more": ["奇点还没来到", "信号穿过噪声", "量子态的叠加", "从第一性出发", "递归调用自己", "暗物质在运动", "超新星爆发之后", "零延迟的未来", "深空的另一端", "数据自己会说话", "引力弯曲了光线", "涌现不可预测", "算法没有终点", "奇点之后的世界", "信号比噪声更强", "量子态还没坍缩", "递归直到找到解", "深空那边有回应", "暗物质占了大半", "涌现是最好的词"]}, "classic": {"2": ["观复", "长物", "清供", "拾古", "雅集", "闲章", "墨宝", "知止", "素心", "大雅", "清赏", "古意", "闲情", "逸品", "风雅", "清欢", "幽兰", "雅致", "留香", "沉香", "如是", "自在", "物华", "妙品", "玉润", "清风", "澄怀", "韵致"], "3": ["清欢记", "长物志", "知止堂", "大雅集", "素心斋", "观复楼", "风雅颂", "墨宝阁", "古意轩", "妙品堂", "如是观", "自在居", "清供台", "幽兰室", "闲章馆", "逸品坊", "留香阁", "澄怀堂", "玉润斋", "琴台上"], "4": ["清风明月", "水墨丹青", "素心若雪", "花间一壶", "大雅可观", "知止不殆", "古意盎然", "长物闲情", "风雅无边", "墨色浓淡", "幽兰在野", "闲情偶寄", "逸品天成", "澄怀观道", "玉润冰清", "琴瑟和鸣", "竹影摇风", "香远益清", "松间明月", "梅花三弄"], "more": ["清风自己会来", "月色不收门票", "花开不为谁开", "大雅藏于民间", "素心不染尘埃", "知止是一种智慧", "闲情偶寄之间", "幽兰生于空谷", "风雅是日常的事", "清风明月不用买", "花开半夏刚刚好", "大雅藏在日常里", "知止而后有所得", "水墨之间是留白", "幽兰不为人而香", "古意在于不刻意", "澄怀以观万物", "琴声入了松林里", "长物志里没有的", "古意不在古物里"]}, "sweet": {"2": ["奶泡", "蜜桃", "棉花", "泡芙", "柿子", "栗子", "软糖", "布丁", "果冻", "麻薯", "团子", "丸子", "豆沙", "焦糖", "棉绒", "毛线", "绒球", "小鹿", "白兔", "桃气", "蜜语", "甜筒", "雪球", "茶泡", "奶盖", "杏仁", "薄荷", "云朵"], "3": ["棉花糖", "奶泡泡", "蜜桃味", "软绵绵", "毛茸茸", "小团子", "焦糖色", "布丁杯", "果冻熊", "麻薯团", "白桃味", "甜甜圈", "小确幸", "草莓味", "奶油卷", "蛋糕屋", "暖烘烘", "粉嘟嘟", "圆滚滚", "糖葫芦"], "4": ["软乎乎的", "甜而不腻", "蜜桃成熟", "棉花很软", "焦糖布丁", "毛茸茸的", "栗子熟了", "桃气满满", "云朵工厂", "奶泡绵密", "草莓季节", "柿子红了", "糯叽叽的", "暖烘烘的", "圆滚滚的", "小鹿斑比", "白桃乌龙", "杏仁豆腐", "薄荷微凉", "蜂蜜柚子"], "more": ["软乎乎的云朵", "蜜桃刚刚熟了", "棉花糖的触感", "焦糖色的午后", "毛茸茸的小动物", "栗子在火上烤着", "云朵做的枕头", "柿子红了一半", "圆滚滚的小猫", "白桃味的夏天", "蜜桃熟了可以吃了", "毛茸茸抱着就开心", "栗子要等秋天才有", "草莓味的整个世界", "柿子红了就是秋天", "云朵枕头睡着就甜", "桃气是闻到的心情", "软乎乎全是云朵", "棉花糖捏一下就扁了", "草莓蛋糕上的那颗"]}, "street": {"2": ["噪声", "铁锈", "碰撞", "裂缝", "涂鸦", "楼顶", "废墟", "底噪", "熔炉", "铸造", "地下", "回路", "焊点", "钢筋", "水泥", "黑胶", "嘈杂", "混凝", "震荡", "闪频", "脉冲", "夹层", "底层", "断面", "切口", "钝器", "合金", "锻造"], "3": ["地下室", "铁皮屋", "停车场", "天台上", "涂鸦墙", "裂缝里", "噪声场", "碰撞点", "废品站", "混凝土", "黑胶片", "焊接点", "脉冲波", "老工厂", "夹层里", "钢筋骨", "锈铁皮", "底噪大", "合金属", "断裂面"], "4": ["地下有光", "铁锈美学", "噪声花园", "碰撞之后", "涂鸦不死", "楼顶见过", "废墟开花", "混凝土诗", "钢筋丛林", "底噪很美", "黑胶转动", "焊点牢固", "脉冲不断", "老厂新生", "夹层之间", "合金配比", "锻造成型", "断面好看", "天台风大", "裂缝长草"], "more": ["地下室有回声", "铁锈也是一种美", "噪声里找旋律", "碰撞才有火花", "涂鸦画在墙上", "楼顶的风特别大", "废墟里长出花来", "混凝土也浪漫", "钢筋撑着天空", "底噪让人安心", "地下室也需要音乐", "铁锈是时间的纹身", "噪声大到听见心跳", "碰撞之后才是开始", "废墟里长出来的花", "混凝土缝里有野草", "钢筋水泥也会呼吸", "底噪是城市的心跳", "黑胶还在转着", "涂鸦墙前站了很久"]}, "luxury": {"2": ["鎏金", "珐琅", "织锦", "璞玉", "琥珀", "鎏银", "臻品", "铂金", "翡翠", "琉璃", "缂丝", "锦缎", "珍稀", "典藏", "晖耀", "璧合", "馥郁", "醇厚", "逸品", "煌煌", "珠光", "华章", "辉映", "雅邸", "御府", "泽润", "璀璨", "贵胄"], "3": ["鎏金匠", "珐琅彩", "织锦坊", "臻品阁", "琉璃厂", "翡翠轩", "缂丝坊", "锦缎庄", "铂金线", "璞玉堂", "馥郁香", "典藏馆", "晖耀堂", "华章阁", "珍稀物", "醇厚味", "御品坊", "贵雅居", "璀璨行", "泽润堂"], "4": ["鎏金岁月", "珐琅之色", "织锦华章", "臻于至善", "琉璃万象", "翡翠无暇", "缂丝经纬", "铂金时代", "璞玉浑金", "馥郁芬芳", "典藏永恒", "华章初续", "珍稀如常", "醇厚如初", "煌煌大观", "璀璨如斯", "泽润万物", "御风而行", "贵在天成", "雅致至极"], "more": ["鎏金是时间给的", "珐琅色永不褪色", "织锦上的每根丝", "臻于至善的追求", "琉璃透光才好看", "缂丝一寸值千金", "铂金不怕火来炼", "馥郁到最后一滴", "典藏值得被等待", "鎏金是时间的手艺", "珐琅彩烧了三遍", "织锦华章一针一线", "臻于至善永不将就", "琉璃透了光才是它", "缂丝一梭一个世界", "铂金经得起所有火", "馥郁是最后的余韵", "珍稀所以被珍惜", "醇厚需要时间来酿", "璞玉等对的人来磨"]}, "zen": {"2": ["无印", "寂照", "空山", "不二", "归真", "虚白", "明心", "止观", "自在", "妙有", "如如", "无为", "清净", "圆觉", "般若", "真如", "涅槃", "禅意", "素心", "朴拙", "虚室", "观照", "静默", "安住", "不染", "拈花", "一味", "了然"], "3": ["不二法", "空山里", "寂照堂", "止观处", "归真处", "妙有间", "清净地", "般若心", "涅槃处", "禅意生", "虚白室", "明心见", "自在行", "如如不", "无为处", "观照中", "素心人", "朴拙堂", "不染尘", "拈花笑"], "4": ["空山无人", "明心见性", "止观双运", "不二法门", "寂照同时", "虚室生白", "如如不动", "无为而治", "拈花微笑", "般若无知", "清净本然", "自在无碍", "一切如是", "归真返朴", "妙有非空", "圆觉妙心", "禅意自来", "观照万物", "素心如雪", "不染不著"], "more": ["空山无人水自流", "坐忘是最好的坐", "不二就是不分别", "止观之间是自在", "般若是看见空的眼", "清净不在深山里", "如如不动也不执着", "拈花微笑不说话", "虚室自然会生白", "归真不用走很远", "一切本来就如是", "空山无人水自己流", "坐到忘了就对了", "止观之间什么都有", "清净心在菜市场里", "拈花一笑千年以后", "虚室生白是最好的", "一切如是不增不减", "无为不是什么都不做", "明心不是想出来的"]}, "playful": {"2": ["脑洞", "猜想", "也许", "大概", "假设", "偶然", "万一", "忽然", "居然", "竟然", "错位", "倒转", "歪打", "反正", "奇遇", "妙计", "鬼点", "巧合", "意外", "悬念", "彩蛋", "伏笔", "番外", "梗概", "脑补", "盲猜", "碰巧", "荒诞"], "3": ["猜想家", "可能性", "也许吧", "万一呢", "偶然间", "忽然的", "想太多", "歪道理", "反正是", "差不多", "脑洞大", "巧合吗", "碰巧的", "意外的", "彩蛋藏", "盲猜对", "番外篇", "不一定", "说不准", "怪有趣"], "4": ["宇宙猜想", "也许可以", "大概是吧", "万一成了", "偶然所得", "忽然想到", "居然可以", "竟然不错", "歪打正着", "错位美学", "反正都行", "脑洞大开", "巧合制造", "意外收获", "彩蛋已藏", "番外故事", "盲猜全对", "碰巧路过", "荒诞日常", "差点忘了"], "more": ["也许有另一种", "大概是这个意思", "万一走运了呢", "偶然发现的好东西", "忽然就想通了", "居然这样也行", "竟然还挺好看", "歪打正着的美", "脑洞开到最大", "巧合不是巧合", "意外才是惊喜", "差一点就错过了", "也许答案在隔壁", "万一这就是最好的", "偶然发现的才珍贵", "忽然想到一个好的", "居然这样也可以", "竟然比想象的要好", "歪打正着也是本事", "脑洞大到装不下了"]}, "rural": {"2": ["土灶", "炊烟", "麦浪", "稻香", "瓦罐", "篱笆", "谷仓", "柴门", "烟火", "菜园", "磨坊", "晒场", "田埂", "井台", "窑火", "灶台", "老树", "场院", "草垛", "秋收", "霜降", "春耕", "石磨", "陶罐", "竹篮", "蒲扇", "米缸", "面盆"], "3": ["老灶台", "炊烟起", "麦浪里", "稻花香", "篱笆院", "谷仓满", "柴门开", "瓦罐煲", "烟火气", "菜园子", "磨坊里", "晒场上", "田埂边", "井台旁", "窑火烧", "草垛边", "石磨转", "米缸满", "蒲扇摇", "竹篮子"], "4": ["炊烟四起", "麦浪翻滚", "稻花飘香", "篱笆院子", "谷仓已满", "柴门半掩", "瓦罐慢炖", "烟火人间", "菜园春色", "磨坊日常", "晒场金黄", "田埂小路", "井水清凉", "窑火正旺", "草垛温暖", "石磨悠转", "米缸殷实", "竹篮打水", "蒲扇纳凉", "秋收冬藏"], "more": ["炊烟升起来了", "麦浪一直到天边", "稻花香了一路", "篱笆墙上有花开", "谷仓装满就是丰年", "柴门开了就是欢迎", "瓦罐慢炖才有味道", "菜园子里什么都有", "炊烟升起来的时候", "麦浪翻滚到天边去", "稻花香从田间飘来", "篱笆院子里有棵树", "柴门等你来推", "磨坊还在转着", "晒场上全是金黄", "田埂走到尽头", "井水打上来是凉的", "窑火烧了三天三夜", "烟火气是最好的味道", "石磨转了一圈又一圈"]}, "cyber": {"2": ["黑箱", "裂变", "暗码", "幻影", "虚拟", "像素", "电弧", "脉冲", "乱码", "断层", "残影", "回路", "暗线", "频闪", "失真", "噪点", "错码", "短路", "暗涌", "浮点", "幽灵", "迷雾", "深渊", "废土", "锈蚀", "暗面", "灰域", "虫洞"], "3": ["黑箱子", "暗物质", "虚拟人", "幻影线", "断层面", "乱码区", "残影集", "回路断", "错码率", "频闪灯", "失真域", "噪点多", "短路了", "暗涌来", "深渊边", "废土上", "虫洞口", "灰域里", "锈蚀面", "浮点误"], "4": ["黑箱运作", "暗码传输", "虚拟现实", "幻影重叠", "断层之间", "乱码美学", "残影闪烁", "回路中断", "频闪不止", "失真之美", "噪点覆盖", "短路花火", "暗涌不断", "深渊回响", "废土之上", "锈蚀纹理", "虫洞彼端", "灰域行者", "浮点溢出", "电弧闪烁"], "more": ["黑箱打开之后", "暗码还没破译", "虚拟比真实更真", "幻影叠了三层", "断层之间有光", "乱码也是一种美", "残影还没消散", "回路断了又重连", "频闪之间看见真相", "失真是另一种美", "黑箱打开什么都变了", "暗码总会有人破译", "虚拟世界比现实亮", "断层之间藏着秘密", "乱码里有一行情诗", "残影闪烁还没有消散", "回路断了又自己接上", "频闪之间的真相", "失真之后反而更美", "幻影重叠分不出真假"]}, "nordic": {"2": ["素木", "白蜡", "灰调", "雾灰", "霜白", "冰川", "苔绿", "石灰", "麻布", "棉麻", "毛毡", "粗陶", "哑光", "砂面", "钝色", "烛台", "木盒", "藤篮", "白瓷", "铁灰", "裸色", "本色", "原木", "粗粝", "极光", "冻土", "雪线", "晨雾"], "3": ["素木色", "白蜡烛", "雾灰调", "霜白色", "冰川灰", "苔绿色", "石灰面", "棉麻布", "毛毡灰", "粗陶杯", "哑光面", "砂面感", "原木调", "裸色系", "本色棉", "极光色", "冻土灰", "晨雾色", "白瓷瓶", "铁灰调"], "4": ["素木之家", "白蜡微温", "雾灰很好", "霜白世界", "冰川之色", "棉麻日常", "粗陶之美", "哑光表面", "原木生活", "裸色自在", "本色不改", "极光之下", "冻土之上", "晨雾未散", "白瓷简单", "石灰温度", "毛毡厚实", "钝色之美", "苔绿一片", "砂面触感"], "more": ["素木的温度刚好", "白蜡烛慢慢烧着", "雾灰是最好的灰", "霜白覆盖了一切", "冰川的颜色很深", "棉麻穿久了会软", "粗陶不完美才好", "哑光比亮面安静", "原木不需要上漆", "裸色就是最好的", "素木的温度刚刚好", "白蜡烛慢慢烧就好", "霜白覆盖所有多余的", "棉麻穿久了更舒服", "粗陶不完美才动人", "哑光表面不反射光", "原木不上漆最好看", "本色就是最好的色", "极光只出现一小会儿", "雾灰是最喜欢的颜色"]}, "rock": {"2": ["不服", "反骨", "叛逆", "断弦", "嘶吼", "噪音", "黑旗", "电刃", "闪电", "怒放", "燃烧", "铁链", "钉刺", "锈蚀", "灼痛", "风暴", "狂野", "孤狼", "游魂", "暗流", "回响", "余震", "残局", "废柴", "倔强", "硬核", "铁骨", "刺青"], "3": ["不服输", "反骨仔", "断弦后", "嘶吼吧", "噪音美", "黑旗帜", "怒放的", "燃烧吧", "铁链断", "钉和刺", "闪电击", "狂野心", "孤狼行", "游魂在", "暗流涌", "回响中", "余震后", "残局里", "倔强着", "硬核派"], "4": ["不服就干", "反骨天生", "断弦重弹", "嘶吼到底", "噪音花园", "怒放生命", "燃烧殆尽", "铁链已断", "闪电之后", "狂野不羁", "孤狼远行", "暗流涌动", "回响不止", "余震未平", "残局翻盘", "倔强到底", "硬核浪漫", "废墟之花", "黑旗不倒", "锈蚀之美"], "more": ["不服输的人最多", "反骨是天生带的", "断了弦继续弹", "嘶吼到嗓子哑了", "噪音大到像音乐", "怒放不需要许可", "燃烧完才算活过", "铁链断了人自由", "闪电劈完是晴天", "狂野是骨子里的", "不服输的人运气不差", "断了弦还能继续弹", "嘶吼是最诚实的歌声", "噪音大到变成了音乐", "怒放不需要谁的许可", "燃烧殆尽才算真的活", "铁链断了才知道自由", "闪电之后总会有晴天", "狂野是压不住的天性", "孤狼不需要同伴"]}, "healing": {"2": ["拥抱", "温度", "柔光", "微暖", "棉被", "烛光", "信笺", "晚安", "慢慢", "轻声", "陪伴", "依偎", "抚慰", "余温", "小憩", "呢喃", "浅眠", "微风", "晨光", "日常", "暖阳", "闲坐", "慢走", "静好", "花茶", "棉袜", "木屋", "壁炉"], "3": ["慢慢来", "轻声说", "好好的", "暖洋洋", "小日子", "深呼吸", "晚安曲", "余温在", "微风过", "陪你坐", "花茶香", "棉被里", "烛光下", "信笺到", "晨光里", "依偎着", "闲坐会", "静好日", "浅眠时", "木屋里"], "4": ["慢慢来吧", "轻声细语", "好好生活", "暖洋洋的", "小日子里", "深深呼吸", "晚安以后", "余温尚在", "微风正好", "花茶刚泡", "棉被很暖", "烛光摇曳", "晨光如水", "日常温柔", "陪伴左右", "闲坐半日", "一切都好", "静好如初", "木屋壁炉", "依偎而眠"], "more": ["慢慢来不急的", "轻声说给你听", "好好生活就好", "暖洋洋的下午", "小日子也很好", "深呼吸会好的", "晚安说完再睡", "余温还在手上", "微风刚好路过", "花茶泡好等你", "慢慢来不着急就好", "好好生活就是答案", "暖洋洋的什么都好", "小日子过着也很甜", "深呼吸然后再出发", "晚安是最温柔的词", "余温还留在手心里", "微风刚好吹过脸颊", "花茶泡好了等你来", "轻声说给你一个人听"]}, "adventure": {"2": ["远征", "跋涉", "山脊", "冰壁", "峡谷", "荒原", "雪线", "营地", "锚点", "北壁", "冻土", "深潜", "风暴", "旷野", "孤峰", "冰碛", "岩壁", "激流", "陡壁", "横渡", "飞石", "冰川", "雾锁", "雷暴", "天际", "苍穹", "极地", "绝壁"], "3": ["营地灯", "远征队", "冰壁上", "峡谷底", "荒原行", "雪线上", "锚点固", "北壁攀", "风暴眼", "旷野中", "孤峰顶", "深潜者", "横渡人", "天际线", "苍穹下", "极地风", "绝壁攀", "冰川行", "激流渡", "陡壁上"], "4": ["翻山越岭", "深入荒原", "冰壁之上", "峡谷回声", "雪线以上", "营地篝火", "风暴来前", "旷野星空", "孤峰独立", "极地远征", "天际无边", "苍穹之下", "绝壁攀登", "冰川横渡", "激流勇进", "雷暴之后", "北壁之路", "深潜到底", "远征不止", "荒原尽头"], "more": ["翻过这座山就好了", "冰壁上只剩自己", "峡谷底有条溪流", "雪线以上空气薄", "营地篝火还在烧", "风暴来之前出发", "旷野星空看不完", "孤峰顶上风很大", "极地的光很不同", "天际线一直在远方", "翻过这座山就到了", "冰壁上只能靠自己", "雪线以上的空气很薄", "营地篝火烧了一整夜", "风暴来之前必须出发", "旷野的星空看不够", "孤峰顶上的风特别大", "极地远征的最后一天", "深入荒原的第七个夜", "峡谷底下有条溪流"]}};
+const CHAR_POOLS={"minimal": {"空间": ["空", "间", "境", "域", "界", "隙", "层", "维", "场", "方", "位", "向", "径", "隅", "壁", "阶", "廊", "处", "所", "端"], "几何": ["线", "点", "圆", "弧", "角", "面", "形", "体", "轴", "棱", "折", "叠", "切", "交", "对", "称", "映", "射", "旋", "环"], "物理": ["光", "波", "场", "力", "频", "振", "粒", "量", "能", "质", "磁", "散", "聚", "衰", "涌", "弥", "离", "合", "渗", "共"], "感知": ["觉", "触", "温", "微", "淡", "浅", "轻", "静", "默", "隐", "显", "钝", "锐", "柔", "平", "缓", "匀", "净", "素", "纯"], "状态": ["在", "无", "有", "空", "虚", "满", "缺", "动", "静", "开", "闭", "明", "暗", "浮", "沉", "融", "凝", "悬", "止", "存"], "抽象": ["真", "近", "远", "内", "外", "先", "后", "此", "彼", "同", "整", "零", "余", "极", "临", "恰", "略", "半", "几", "未"]}, "nature": {"植物": ["木", "林", "森", "竹", "松", "柏", "杉", "桐", "藤", "苔", "草", "叶", "芽", "根", "枝", "花", "瓣", "蕊", "果", "荫"], "山水": ["山", "水", "泉", "溪", "谷", "峰", "崖", "岭", "涧", "潭", "湖", "海", "川", "岸", "滩", "洲", "渊", "澜", "湾", "汀"], "气象": ["风", "雨", "露", "霜", "雾", "云", "雪", "霞", "岚", "霁", "虹", "雷", "霭", "烟", "晴", "阴", "曦", "暮", "昼", "夜"], "矿物": ["石", "岩", "砂", "土", "泥", "尘", "灰", "炭", "铜", "陶", "瓷", "玉", "琥", "珀", "晶", "矿", "璞", "琉", "璃", "釉"], "生灵": ["鹿", "鹤", "雀", "蝶", "鱼", "蚕", "萤", "燕", "蜂", "兔", "鸽", "鸥", "蝉", "蛙", "鸢", "隼", "鹰", "鲸", "鹭", "蜓"], "节令": ["春", "夏", "秋", "冬", "寒", "暑", "惊", "蛰", "谷", "芒", "霜", "降", "至", "立", "清", "明", "白", "露", "处", "暖"]}, "literary": {"书写": ["书", "墨", "笔", "纸", "字", "句", "篇", "章", "页", "卷", "册", "帖", "简", "牍", "印", "刻", "拓", "碑", "铭", "志"], "思想": ["思", "念", "意", "识", "知", "觉", "悟", "见", "闻", "言", "语", "问", "答", "辩", "论", "说", "道", "理", "智", "慧"], "情感": ["忆", "梦", "眠", "醒", "怀", "惜", "恋", "慕", "愁", "叹", "喜", "悲", "怒", "惊", "慰", "念", "望", "盼", "寄", "托"], "时光": ["昔", "今", "曾", "已", "将", "还", "又", "再", "常", "偶", "旧", "故", "往", "归", "逝", "留", "驻", "久", "暂", "永"], "场景": ["窗", "门", "巷", "楼", "庭", "院", "桥", "塔", "亭", "台", "阁", "堂", "馆", "斋", "舍", "铺", "坊", "弄", "径", "廊"], "叙事": ["遇", "别", "寻", "访", "候", "约", "赴", "迟", "误", "错", "逢", "散", "聚", "伴", "独", "归", "游", "旅", "渡", "迁"]}, "tech": {"计算": ["算", "码", "数", "端", "链", "核", "芯", "组", "模", "程", "构", "序", "阵", "矩", "集", "函", "域", "值", "解", "维"], "能量": ["光", "电", "磁", "能", "频", "波", "粒", "子", "量", "核", "热", "力", "场", "弧", "荷", "流", "压", "功", "率", "衡"], "连接": ["联", "通", "达", "融", "信", "传", "导", "接", "映", "互", "同", "并", "汇", "聚", "网", "链", "串", "桥", "路", "径"], "尺度": ["微", "宏", "纳", "极", "超", "亚", "元", "兆", "太", "介", "毫", "皮", "飞", "阿", "渺", "巨", "万", "亿", "无", "穷"], "动态": ["迭", "递", "循", "涌", "裂", "变", "跃", "振", "旋", "冲", "驱", "推", "拉", "升", "降", "扩", "缩", "转", "移", "漂"], "新锐": ["稳", "衡", "锐", "准", "精", "清", "明", "透", "纯", "新", "原", "初", "终", "恒", "真", "实", "虚", "拟", "仿", "似"]}, "classic": {"器物": ["玉", "瓷", "漆", "帛", "锦", "绸", "缎", "绫", "罗", "纱", "釉", "铜", "鼎", "壶", "盏", "匣", "笼", "扇", "屏", "镜"], "雅趣": ["琴", "棋", "茶", "香", "画", "酒", "花", "诗", "墨", "砚", "笛", "箫", "筝", "鼓", "弦", "调", "韵", "曲", "吟", "咏"], "美学": ["素", "雅", "幽", "清", "淡", "逸", "闲", "静", "妙", "秀", "灵", "韵", "致", "趣", "意", "境", "品", "格", "调", "范"], "意象": ["月", "风", "烟", "霞", "云", "鹤", "兰", "竹", "梅", "松", "莲", "荷", "菊", "桂", "柳", "杏", "桃", "藕", "芙", "蓉"], "场所": ["堂", "阁", "轩", "斋", "庐", "舍", "苑", "馆", "园", "亭", "台", "榭", "廊", "坊", "寺", "观", "庵", "庙", "坛", "阙"], "品性": ["仁", "义", "礼", "智", "信", "德", "善", "美", "真", "净", "慈", "和", "正", "诚", "敬", "谦", "恕", "忠", "孝", "廉"]}, "sweet": {"食物": ["糖", "蜜", "桃", "莓", "芋", "薯", "奶", "酱", "饼", "糯", "麻", "薄", "脆", "酥", "果", "茶", "冰", "泡", "汽", "盐"], "触感": ["软", "绵", "棉", "毛", "绒", "滑", "弹", "嫩", "润", "泡", "蓬", "松", "暖", "烫", "凉", "黏", "稠", "薄", "厚", "轻"], "形态": ["圆", "团", "丸", "球", "滴", "粒", "颗", "朵", "簇", "片", "条", "卷", "环", "扣", "结", "辫", "缠", "编", "串", "叠"], "色彩": ["粉", "白", "红", "橘", "黄", "绿", "蓝", "紫", "灰", "杏", "奶", "鹅", "鸭", "米", "棕", "栗", "藕", "蜜", "焦", "裸"], "动物": ["兔", "猫", "鹿", "熊", "羊", "鸭", "鹅", "犬", "鸟", "鱼", "蜂", "蝶", "萤", "虫", "蚁", "龟", "蛙", "鼠", "狐", "象"], "语气": ["呀", "呢", "嘛", "吧", "哦", "哈", "嘿", "噢", "嗯", "喵", "咪", "汪", "嘟", "嘀", "咕", "吱", "咔", "嗒", "叮", "咚"]}, "street": {"力量": ["冲", "撞", "碰", "裂", "破", "劈", "砸", "锤", "击", "弹", "射", "炸", "爆", "燃", "烧", "焚", "熔", "炼", "铸", "淬"], "速度": ["飞", "闪", "冲", "奔", "掠", "窜", "跃", "蹦", "翻", "转", "滑", "漂", "飘", "荡", "摇", "甩", "晃", "旋", "扫", "掀"], "态度": ["狂", "野", "猛", "燥", "噪", "吵", "闹", "狠", "酷", "拽", "嚣", "傲", "横", "混", "怪", "邪", "痞", "匪", "疯", "癫"], "声音": ["嗨", "噪", "嘶", "吼", "吠", "喊", "嚎", "哮", "鸣", "轰", "砰", "嘭", "咚", "嗡", "嘣", "咻", "嗖", "啸", "嚷", "吱"], "城市": ["街", "巷", "墙", "楼", "顶", "底", "角", "弯", "坡", "坎", "桥", "洞", "管", "线", "站", "码", "港", "区", "厂", "库"], "材质": ["黑", "白", "红", "金", "银", "铁", "钢", "铝", "锡", "铅", "锌", "钛", "碳", "硅", "氖", "氙", "氦", "锂", "钾", "钠"]}, "luxury": {"珍材": ["金", "铂", "钻", "珀", "翡", "翠", "琥", "玛", "瑙", "珊", "瑚", "珠", "贝", "璧", "琮", "璜", "瑜", "琼", "瑶", "璨"], "光泽": ["辉", "耀", "灿", "璀", "晖", "熠", "熹", "煌", "焕", "曜", "皓", "皎", "莹", "澈", "润", "泽", "华", "彩", "艳", "烁"], "品位": ["臻", "萃", "粹", "醇", "馥", "馨", "芳", "郁", "浓", "厚", "深", "沉", "绵", "悠", "隽", "逸", "端", "庄", "贵", "雅"], "殿堂": ["殿", "宫", "府", "邸", "苑", "廷", "署", "台", "阁", "楼", "塔", "城", "堡", "馆", "院", "庭", "堂", "厅", "室", "宅"], "时间": ["恒", "永", "久", "古", "远", "长", "千", "万", "世", "代", "纪", "年", "载", "岁", "时", "期", "季", "旬", "朝", "夕"], "质感": ["丝", "绸", "缎", "绒", "麂", "皮", "革", "裘", "毡", "呢", "纱", "绫", "锦", "帛", "缂", "绣", "织", "编", "染", "印"]}, "zen": {"佛禅": ["禅", "悟", "觉", "空", "定", "慧", "净", "明", "寂", "灭", "度", "渡", "缘", "因", "果", "业", "法", "真", "如", "般"], "道法": ["道", "德", "无", "为", "自", "然", "虚", "静", "柔", "弱", "朴", "素", "玄", "妙", "化", "生", "阴", "阳", "气", "息"], "修行": ["修", "行", "持", "守", "戒", "忍", "舍", "离", "放", "下", "观", "照", "参", "悟", "证", "得", "求", "问", "听", "闻"], "境界": ["空", "寂", "静", "定", "安", "宁", "清", "淡", "简", "素", "朴", "拙", "虚", "无", "忘", "遗", "隐", "退", "藏", "匿"], "山水": ["山", "水", "云", "月", "风", "雨", "竹", "石", "泉", "溪", "松", "梅", "雪", "霜", "露", "烟", "雾", "岚", "霁", "晖"], "器具": ["钵", "磬", "木", "鱼", "灯", "炉", "香", "烛", "帘", "席", "蒲", "团", "杖", "拂", "珠", "串", "碗", "盏", "瓯", "壶"]}, "playful": {"想象": ["梦", "幻", "虚", "假", "拟", "仿", "猜", "想", "构", "编", "造", "设", "假", "如", "若", "或", "也", "许", "大", "概"], "反常": ["歪", "斜", "倒", "反", "翻", "逆", "错", "乱", "混", "杂", "奇", "怪", "妙", "趣", "巧", "偶", "然", "竟", "居", "忽"], "日常": ["桌", "椅", "杯", "碗", "筷", "勺", "锅", "盘", "碟", "壶", "瓶", "罐", "盒", "袋", "包", "夹", "扣", "针", "剪", "尺"], "动作": ["摇", "晃", "拍", "敲", "捏", "揉", "搓", "掰", "拧", "拽", "扔", "抛", "接", "捡", "摸", "碰", "戳", "弹", "抖", "甩"], "科学": ["粒", "量", "维", "频", "临", "界", "渐", "近", "衰", "变", "折", "射", "弥", "散", "涌", "现", "坍", "缩", "裂", "隙"], "哲学": ["在", "无", "虚", "实", "存", "灭", "生", "死", "始", "终", "因", "果", "本", "末", "表", "里", "真", "伪", "是", "非"]}, "rural": {"农作": ["稻", "麦", "谷", "豆", "粟", "秧", "苗", "穗", "禾", "籽", "种", "耕", "播", "割", "收", "晒", "磨", "碾", "舂", "筛"], "乡物": ["篱", "笆", "炊", "灶", "井", "窑", "仓", "棚", "坊", "埂", "篮", "筐", "簸", "箕", "锄", "镰", "犁", "耙", "桶", "缸"], "食材": ["姜", "蒜", "葱", "椒", "盐", "醋", "酱", "糖", "蜜", "油", "米", "面", "薯", "芋", "笋", "菌", "枣", "栗", "柿", "梨"], "节气": ["春", "耕", "夏", "种", "秋", "收", "冬", "藏", "雨", "霜", "露", "雪", "风", "霁", "晴", "暖", "凉", "寒", "暑", "温"], "手艺": ["染", "织", "编", "绣", "缝", "补", "扎", "捏", "刻", "雕", "烧", "窑", "酿", "腌", "熏", "卤", "烤", "蒸", "煮", "焙"], "家常": ["家", "屋", "灶", "桌", "凳", "床", "枕", "被", "帘", "烛", "碗", "碟", "勺", "筷", "壶", "盏", "罐", "坛", "瓮", "盆"]}, "cyber": {"数字": ["零", "壹", "码", "端", "链", "核", "芯", "组", "模", "程", "构", "序", "阵", "矩", "集", "函", "域", "值", "解", "算"], "光电": ["光", "电", "磁", "能", "频", "波", "粒", "子", "量", "核", "热", "力", "场", "弧", "荷", "流", "压", "功", "率", "衡"], "破坏": ["裂", "碎", "崩", "塌", "溃", "蚀", "锈", "腐", "朽", "残", "断", "折", "弯", "扭", "歪", "毁", "废", "焚", "灭", "殁"], "幻象": ["幻", "影", "像", "镜", "映", "折", "投", "射", "屏", "幕", "虚", "拟", "仿", "假", "伪", "冒", "替", "代", "克", "隆"], "暗面": ["暗", "黑", "夜", "影", "雾", "霾", "尘", "灰", "锈", "铁", "铅", "汞", "钴", "钨", "氖", "氙", "氦", "锂", "铬", "锰"], "速度": ["闪", "冲", "飙", "窜", "跃", "掠", "削", "劈", "穿", "透", "贯", "击", "弹", "射", "爆", "炸", "燃", "烧", "雷", "电"]}, "nordic": {"材质": ["木", "石", "铁", "铜", "陶", "瓷", "棉", "麻", "毛", "革", "纸", "竹", "藤", "绳", "蜡", "漆", "灰", "泥", "砖", "瓦"], "色调": ["白", "灰", "米", "沙", "雾", "霜", "雪", "冰", "银", "素", "淡", "浅", "柔", "哑", "磨", "砂", "粗", "糙", "钝", "暗"], "形态": ["圆", "方", "扁", "窄", "宽", "厚", "薄", "矮", "高", "长", "短", "弯", "直", "平", "凸", "凹", "棱", "角", "弧", "槽"], "家居": ["桌", "椅", "灯", "柜", "架", "盒", "盘", "杯", "碗", "壶", "瓶", "罐", "框", "篮", "垫", "毯", "帘", "布", "巾", "席"], "光线": ["晨", "暮", "昏", "晴", "阴", "朦", "胧", "微", "淡", "柔", "散", "漫", "透", "映", "照", "洒", "投", "落", "浮", "沉"], "情绪": ["静", "安", "宁", "慢", "缓", "闲", "懒", "倦", "淡", "轻", "松", "柔", "暖", "凉", "清", "冷", "空", "寂", "默", "隐"]}, "rock": {"噪音": ["嘶", "吼", "嚎", "吠", "喊", "啸", "嚷", "轰", "鸣", "嗡", "噪", "嘣", "砰", "嘭", "咚", "咔", "嗒", "吱", "炸", "爆"], "破坏": ["砸", "碎", "裂", "撕", "烧", "焚", "毁", "灭", "踏", "踩", "掀", "翻", "倒", "塌", "崩", "溃", "坏", "废", "烂", "朽"], "黑暗": ["暗", "黑", "夜", "影", "鬼", "魂", "魄", "骨", "血", "痕", "疤", "伤", "痛", "苦", "泪", "哭", "嚎", "哀", "殇", "殁"], "自由": ["野", "狂", "疯", "浪", "荡", "漫", "游", "飘", "散", "逃", "奔", "闯", "冲", "破", "越", "跨", "飞", "翔", "翼", "风"], "符号": ["十", "叉", "刺", "钉", "链", "锁", "环", "圈", "星", "火", "焰", "雷", "电", "刃", "锋", "矛", "盾", "旗", "号", "角"], "态度": ["不", "反", "逆", "抗", "拒", "弃", "离", "断", "绝", "戒", "厌", "恨", "怒", "躁", "燥", "烈", "猛", "悍", "硬", "刚"]}, "healing": {"温度": ["暖", "温", "热", "柔", "软", "绵", "棉", "毛", "绒", "厚", "轻", "薄", "润", "滑", "嫩", "细", "密", "紧", "贴", "裹"], "光影": ["晨", "曦", "昏", "暮", "晖", "辉", "映", "照", "洒", "透", "漫", "散", "浮", "落", "沉", "隐", "现", "闪", "微", "朦"], "声音": ["轻", "柔", "缓", "慢", "细", "微", "低", "静", "默", "寂", "哼", "吟", "唱", "念", "呢", "喃", "叹", "息", "嗯", "嘘"], "气味": ["香", "芬", "馥", "馨", "芳", "郁", "淡", "清", "甜", "苦", "涩", "鲜", "暖", "凉", "醇", "绵", "柔", "幽", "隐", "散"], "触碰": ["抱", "拥", "握", "牵", "靠", "依", "偎", "贴", "碰", "触", "摸", "抚", "拍", "揉", "捏", "搂", "挽", "扶", "托", "撑"], "日常": ["窗", "光", "猫", "茶", "书", "花", "草", "雨", "伞", "毯", "枕", "被", "杯", "勺", "碗", "灯", "烛", "信", "纸", "笔"]}, "adventure": {"地形": ["山", "峰", "崖", "壁", "谷", "涧", "峡", "岭", "坡", "坎", "滩", "洲", "岛", "礁", "湾", "角", "岬", "原", "漠", "丘"], "天象": ["风", "雨", "雪", "雷", "电", "霜", "雾", "岚", "霁", "虹", "云", "霞", "暴", "寒", "冻", "冰", "霰", "霭", "晴", "旱"], "动作": ["攀", "登", "越", "渡", "涉", "跋", "跨", "跃", "穿", "行", "探", "寻", "追", "逐", "奔", "闯", "冲", "踏", "践", "跑"], "装备": ["绳", "索", "锚", "钉", "扣", "环", "杖", "刃", "锋", "盾", "甲", "靴", "帐", "篷", "灯", "炉", "壶", "囊", "袋", "包"], "野生": ["鹰", "狼", "熊", "豹", "鹿", "蛇", "鹫", "雕", "獾", "狐", "隼", "鸢", "鲸", "鲨", "虎", "狮", "彪", "麋", "犀", "鸿"], "精神": ["勇", "毅", "坚", "韧", "刚", "强", "猛", "烈", "锐", "锋", "恒", "久", "远", "深", "广", "阔", "辽", "旷", "浩", "茫"]}};
+const STYLE_META={"minimal": ["极简中性", "◻", "MUJI·Aesop·COS"], "nature": ["自然有机", "◯", "观夏·Lush·Diptyque"], "literary": ["文艺人文", "▨", "单向空间·方所"], "tech": ["科技未来", "⬡", "Tesla·大疆·Nothing"], "classic": ["国风古典", "◈", "花西子·观复·故宫"], "sweet": ["甜系少女", "◠", "奈雪·泡泡玛特·Jellycat"], "street": ["潮流街头", "◤", "Supreme·CLOT·李宁"], "luxury": ["奢华高定", "◆", "Hermès·Chanel·卡地亚"], "zen": ["禅意东方", "○", "无印良品·三宅一生"], "playful": ["趣味脑洞", "✳", "宇宙的猜想·喜茶"], "rural": ["田园乡土", "▭", "日食记·李子柒"], "cyber": ["赛博朋克", "⬢", "ROG·Razer·黑鲨"], "nordic": ["北欧冷淡", "▬", "IKEA·Hay·Arket"], "rock": ["摇滚叛逆", "⚡", "Diesel·Dr.Martens"], "healing": ["治愈温暖", "◡", "茑屋书店·野兽派"], "adventure": ["户外探索", "△", "始祖鸟·TNF·Patagonia"]};
+const FREE_STYLES=["minimal", "nature", "literary", "playful", "healing"];
+
+
+// ═══ CONFIG ═══
+const MAX_FREE_DAILY = 15;
+const UNLOCK_KEY = 'brand_shaker_paid';
+const SHAKE_COUNT_KEY = 'brand_shaker_shakes';
+const SHAKE_DATE_KEY = 'brand_shaker_date';
+const SAVED_KEY = 'brand_shaker_saved';
+
+// ═══ STATE ═══
+let currentStyle='minimal',activeCats=new Set(),currentLen=3,logicMode=false,locked=[],saved=[],isSpinning=false,slots=[],phraseHistory={};
+let isPaid = localStorage.getItem(UNLOCK_KEY)==='true';
+let shakeCount = 0;
+
+function initShakeCount(){
+  const today=new Date().toDateString();
+  const storedDate=localStorage.getItem(SHAKE_DATE_KEY);
+  if(storedDate!==today){shakeCount=0;localStorage.setItem(SHAKE_DATE_KEY,today);localStorage.setItem(SHAKE_COUNT_KEY,'0')}
+  else{shakeCount=parseInt(localStorage.getItem(SHAKE_COUNT_KEY)||'0')}
+  updateFreeHint();
+}
+
+function updateFreeHint(){
+  const el=document.getElementById('freeHint');
+  const sec=document.getElementById('unlockSection');
+  if(isPaid){el.textContent='已解锁完整版';sec.style.display='none'}
+  else{el.textContent=`今日剩余 ${Math.max(0,MAX_FREE_DAILY-shakeCount)} 次免费`;sec.style.display='block'}
+}
+
+function checkCanShake(){
+  if(isPaid)return true;
+  if(shakeCount>=MAX_FREE_DAILY){showToast('今日免费次数已用完，解锁后无限使用');return false}
+  return true;
+}
+
+function useShake(){
+  if(isPaid)return;
+  shakeCount++;localStorage.setItem(SHAKE_COUNT_KEY,String(shakeCount));updateFreeHint();
+}
+
+// ═══ UNLOCK (CODE REDEEM) ═══
+function toggleCodePanel(){
+  document.getElementById('codePanel').classList.toggle('open');
+  setTimeout(()=>{const i=document.getElementById('codeInput');if(i)i.focus()},300);
+}
+async function redeemCode(){
+  const input=document.getElementById('codeInput'),msg=document.getElementById('codeMsg'),btn=document.querySelector('.code-submit-btn');
+  const code=input.value.trim();
+  if(!code){msg.className='code-msg error';msg.textContent='请输入兑换码';return}
+  btn.disabled=true;btn.textContent='验证中...';msg.className='code-msg';msg.textContent='';
+  try{
+    const r=await fetch('/api/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+    const d=await r.json();
+    if(d.success&&d.license_key){
+      localStorage.setItem(UNLOCK_KEY,d.license_key);isPaid=true;
+      msg.className='code-msg success';msg.textContent='解锁成功！';
+      updateFreeHint();renderStyleGrid();selectStyle(currentStyle);showToast('已解锁完整版！');
+      setTimeout(()=>document.getElementById('codePanel').classList.remove('open'),1500);
+    }else{msg.className='code-msg error';msg.textContent=d.message||'兑换失败'}
+  }catch(e){msg.className='code-msg error';msg.textContent='网络错误，请重试'}
+  btn.disabled=false;btn.textContent='解锁';
+}
+async function verifyStoredLicense(){
+  const k=localStorage.getItem(UNLOCK_KEY);if(!k||k==='true')return false;
+  try{const r=await fetch('/api/verify?key='+k);const d=await r.json();return d.valid===true}catch(e){return false}
+}
+document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='codeInput'){e.preventDefault();redeemCode()}});
+
+// ═══ INIT ═══
+async function init(){
+  const k=localStorage.getItem(UNLOCK_KEY);
+  if(k&&k!=='true'){isPaid=await verifyStoredLicense();if(!isPaid)localStorage.removeItem(UNLOCK_KEY)}
+  else{isPaid=false;if(k==='true')localStorage.removeItem(UNLOCK_KEY)}
+  initShakeCount();saved=JSON.parse(localStorage.getItem(SAVED_KEY)||'[]');
+  renderStyleGrid();selectStyle('minimal');buildSlots();shake();renderSaved();
+}
+
+function renderStyleGrid(){
+  const g=document.getElementById('styleGrid');g.innerHTML='';
+  Object.entries(STYLE_META).forEach(([k,s])=>{
+    const isLocked=!isPaid&&!FREE_STYLES.includes(k);
+    const c=document.createElement('div');
+    c.className='style-card'+(isLocked?' locked-style':'');
+    c.dataset.style=k;
+    c.innerHTML=`<span class="style-icon">${s[1]}</span><span class="style-name">${s[0]}</span><span class="style-sample">${s[2]}</span>${isLocked?'<span class="lock-badge">🔒</span>':''}`;
+    c.onclick=()=>{
+      if(isLocked){showToast('解锁后可用');toggleUnlockPanel();return}
+      selectStyle(k);
+    };
+    g.appendChild(c);
+  });
+}
+
+function selectStyle(k){
+  currentStyle=k;
+  document.querySelectorAll('.style-card').forEach(c=>c.classList.toggle('selected',c.dataset.style===k));
+  activeCats=new Set(Object.keys(CHAR_POOLS[k]));renderCats();updateSteps(2);
+}
+
+function renderCats(){
+  const r=document.getElementById('catRow');r.innerHTML='';
+  if(logicMode){r.innerHTML='<span style="font-size:11px;color:var(--muted)">有意义词模式下使用完整词库</span>';return}
+  Object.keys(CHAR_POOLS[currentStyle]).forEach(cat=>{
+    const b=document.createElement('button');b.className='cat-tag'+(activeCats.has(cat)?' active':'');b.textContent=cat;
+    b.onclick=()=>{if(activeCats.has(cat)){if(activeCats.size<=1)return;activeCats.delete(cat);b.classList.remove('active')}else{activeCats.add(cat);b.classList.add('active')}};
+    r.appendChild(b);
+  });
+}
+
+function setLen(n){currentLen=n;document.querySelectorAll('.len-btn').forEach(b=>{const v=b.dataset.len;b.classList.toggle('active',v==n||v===String(n))});locked=[];buildSlots();shake()}
+function toggleLogic(){logicMode=!logicMode;document.getElementById('logicToggle').classList.toggle('on',logicMode);document.getElementById('labelRandom').classList.toggle('active',!logicMode);document.getElementById('labelLogic').classList.toggle('active',logicMode);document.getElementById('modeHint').textContent=logicMode?'从预设词库中随机抽取完整的有意义品牌名':'从字库中随机抽字拼合，可能产生意外惊喜';document.getElementById('slotHint').textContent=logicMode?'每次摇出一个完整的有意义名字':'点击单字锁定';renderCats();buildSlots();shake()}
+
+function buildSlots(){const a=document.getElementById('slotArea');a.innerHTML='';slots=[];const n=currentLen==='more'?(logicMode?7:5+Math.floor(Math.random()*4)):currentLen;locked=new Array(n).fill(false);for(let i=0;i<n;i++){const s=document.createElement('div');s.className='slot';s.innerHTML='<div class="lock-dot"></div><span class="slot-char">字</span>';if(!logicMode)s.onclick=(()=>{const idx=i;return()=>toggleLock(idx)})();a.appendChild(s);slots.push(s)}}
+function rebuildSlotsForPhrase(n){const a=document.getElementById('slotArea');a.innerHTML='';slots=[];locked=new Array(n).fill(false);for(let i=0;i<n;i++){const s=document.createElement('div');s.className='slot';s.innerHTML='<div class="lock-dot"></div><span class="slot-char">字</span>';a.appendChild(s);slots.push(s)}}
+function toggleLock(i){if(isSpinning||logicMode)return;locked[i]=!locked[i];slots[i].classList.toggle('locked',locked[i])}
+function getCharPool(){const p=CHAR_POOLS[currentStyle];let pool=[];activeCats.forEach(c=>{if(p[c])pool=pool.concat(p[c])});return[...new Set(pool)]}
+function R(a){return a[Math.floor(Math.random()*a.length)]}
+function getPhrase(){const key=currentLen==='more'?'more':String(currentLen);const p=PHRASES[currentStyle]?.[key];if(!p||!p.length)return null;const hk=currentStyle+'_'+key;if(!phraseHistory[hk])phraseHistory[hk]=[];const h=phraseHistory[hk];const av=p.filter(x=>!h.includes(x));const pick=av.length>0?R(av):R(p);h.push(pick);if(h.length>Math.floor(p.length*0.7))h.shift();return pick}
+
+function shake(){
+  if(isSpinning)return;
+  if(!checkCanShake())return;
+  isSpinning=true;useShake();updateSteps(3);
+  const btn=document.getElementById('shakeBtn');btn.style.pointerEvents='none';
+  if(logicMode){
+    const phrase=getPhrase();if(!phrase){isSpinning=false;btn.style.pointerEvents='auto';return}
+    const chars=[...phrase];if(chars.length!==slots.length)rebuildSlotsForPhrase(chars.length);
+    const pool=getCharPool();
+    slots.forEach((s,i)=>{s._iv=setInterval(()=>{s.querySelector('.slot-char').textContent=pool.length>0?R(pool):R(chars)},45)});
+    slots.forEach((s,i)=>{setTimeout(()=>{clearInterval(s._iv);s.querySelector('.slot-char').textContent=chars[i]||'?';const ch=s.querySelector('.slot-char');ch.style.transform='scale(1.2)';setTimeout(()=>ch.style.transform='scale(1)',100)},250+i*100)});
+  }else{
+    if(currentLen==='more'){const n=5+Math.floor(Math.random()*4);if(n!==slots.length){rebuildSlotsForPhrase(n);locked=new Array(n).fill(false)}}
+    const pool=getCharPool();if(!pool.length){isSpinning=false;btn.style.pointerEvents='auto';return}
+    slots.forEach((s,i)=>{if(!locked[i])s._iv=setInterval(()=>{s.querySelector('.slot-char').textContent=R(pool)},45)});
+    slots.forEach((s,i)=>{if(!locked[i])setTimeout(()=>{clearInterval(s._iv);s.querySelector('.slot-char').textContent=R(pool);const ch=s.querySelector('.slot-char');ch.style.transform='scale(1.2)';setTimeout(()=>ch.style.transform='scale(1)',100)},250+i*100)});
+  }
+  setTimeout(()=>{isSpinning=false;btn.style.pointerEvents='auto'},250+slots.length*100+80);
+}
+
+function getCurrentWord(){return slots.map(s=>s.querySelector('.slot-char').textContent).join('')}
+function saveWord(){const w=getCurrentWord(),sn=STYLE_META[currentStyle][0];if(saved.some(s=>s.word===w)){showToast('已收藏过了');return}saved.push({word:w,style:sn});localStorage.setItem(SAVED_KEY,JSON.stringify(saved));renderSaved();showToast('已收藏 '+w)}
+function removeSaved(i){saved.splice(i,1);localStorage.setItem(SAVED_KEY,JSON.stringify(saved));renderSaved()}
+function clearSaved(){if(!saved.length)return;saved=[];localStorage.setItem(SAVED_KEY,'[]');renderSaved();showToast('已清空')}
+function copyAll(){if(!saved.length)return;const t=saved.map(s=>s.word).join(' / ');navigator.clipboard.writeText(t).then(()=>showToast('已复制到剪贴板')).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('已复制到剪贴板')})}
+function renderSaved(){const l=document.getElementById('savedList');if(!saved.length){l.innerHTML='<div class="empty-hint">摇到喜欢的按 Enter 收藏</div>';return}l.innerHTML=saved.map((s,i)=>`<div class="saved-item"><span class="saved-word">${s.word}</span><span class="saved-style-tag">${s.style}</span><span class="remove-x" onclick="event.stopPropagation();removeSaved(${i})">×</span></div>`).join('')}
+function updateSteps(n){[1,2,3].forEach(i=>document.getElementById('step'+i).classList.toggle('active',i<=n))}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();shake()}if(e.code==='Enter'){e.preventDefault();saveWord()}});
+init();
+</script>
+</body></html>
