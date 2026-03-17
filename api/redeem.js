@@ -1,5 +1,6 @@
 const crypto = require('crypto');
-const { kv } = require('@vercel/kv');
+const { Redis } = require('@upstash/redis');
+const kv = new Redis({ url: process.env.KV_REST_API_URL, token: process.env.KV_REST_API_TOKEN });
 
 // 用户兑换码接口
 // POST /api/redeem  body: { code: "BNS-XXXX-XXXX" }
