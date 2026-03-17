@@ -1,5 +1,6 @@
 const crypto = require('crypto');
-const { kv } = require('@vercel/kv');
+const { Redis } = require('@upstash/redis');
+const kv = new Redis({ url: process.env.KV_REST_API_URL, token: process.env.KV_REST_API_TOKEN });
 
 // 生成兑换码的管理接口
 // 调用方式: GET /api/generate-codes?secret=你的密钥&count=20
