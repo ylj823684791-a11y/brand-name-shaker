@@ -147,7 +147,6 @@ body{background:var(--bg);font-family:'Noto Sans SC',sans-serif;color:var(--text
 <div class="slot-area" id="slotArea"></div>
 <div class="slot-hint" id="slotHint">点击单字锁定</div>
 <button class="shake-btn" id="shakeBtn" onclick="shake()">摇</button>
-<div class="free-hint" id="freeHint"></div>
 <button class="save-btn" onclick="saveWord()">收藏这个</button>
 </div>
 <div class="saved-section">
@@ -156,22 +155,6 @@ body{background:var(--bg);font-family:'Noto Sans SC',sans-serif;color:var(--text
 <button class="saved-action-btn" onclick="clearSaved()">清空</button>
 </div></div>
 <div class="saved-list" id="savedList"></div>
-</div>
-<!-- UNLOCK SECTION -->
-<div class="unlock-section" id="unlockSection">
-<div class="unlock-bar" style="justify-content:center">
-<span class="unlock-bar-text">全部 16 种风格 + 无限次摇</span>
-</div>
-<div class="code-panel open" id="codePanel">
-<div class="code-panel-inner">
-<div class="code-step">在小红书搜索「摇个品牌名」购买兑换码</div>
-<div class="code-input-row">
-<input id="codeInput" class="code-input" type="text" placeholder="输入兑换码 BNS-XXXX-XXXX" maxlength="14" autocomplete="off" spellcheck="false">
-<button class="code-submit-btn" onclick="redeemCode()">解锁</button>
-</div>
-<div class="code-msg" id="codeMsg"></div>
-</div>
-</div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -191,7 +174,7 @@ const SAVED_KEY = 'brand_shaker_saved';
 
 // ═══ STATE ═══
 let currentStyle='minimal',activeCats=new Set(),currentLen=3,logicMode=false,locked=[],saved=[],isSpinning=false,slots=[],phraseHistory={};
-let isPaid = localStorage.getItem(UNLOCK_KEY)==='true';
+let isPaid = true;
 let shakeCount = 0;
 
 function initShakeCount(){
